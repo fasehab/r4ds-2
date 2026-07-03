@@ -99,3 +99,75 @@ ggplot(calendar_resid, aes(x = calendar_date, y = mean_pct_resid)) +
     y = "Mean % Residual"
   )
 ```
+
+```{r}
+#| message: false
+library(tidyverse)
+library(readxl)
+
+read_excel("data/nba_recruits.xlsx") |> 
+  glimpse()
+```
+
+```{r}
+#| message: false
+library(tidyverse)
+library(readxl)
+
+read_excel("data/nba_recruits.xlsx") |> 
+  select(rank, nba_mean_ws48, top_mean_wa, total_seasons, drafted) |> 
+  summary()
+```
+
+```{r}
+#| message: false
+library(tidyverse)
+library(readxl)
+
+read_excel("data/nba_recruits.xlsx") |> 
+  count(tier)
+```
+
+```{r}
+#| message: false
+#| cache: true
+library(tidyverse)
+library(readxl)
+
+basketball_tibble <- read_excel("data/nba_recruits.xlsx") |> 
+  mutate(tier = factor(tier, 
+                       levels = c("Never played", "Brief career", "Solid career", "All-Star level", "Superstar"), 
+                       ordered = TRUE)) |> 
+  mutate(recruit_group = factor(recruit_group, 
+                                levels = c("#1–10", "#11–25", "#26–50", "#51–100", "Outside top 100"), 
+                                ordered = TRUE))
+```
+
+```{r}
+#| message: false
+library(tidyverse)
+
+basketball_tibble |> 
+  count(recruit_group)
+```
+
+```{r}
+#| message: false
+library(tidyverse)
+
+basketball_tibble |> 
+  filter(!is.na(rank) & !is.na(top_mean_wa)) |> 
+  mutate(label = ifelse(name %in% c("LeBron James", "Chris Paul", "Kevin Durant", "Draymond Green"), name, "")) |> 
+  ggplot(aes(x = rank, y = top_mean_wa)) +
+  geom_point(aes(color = tier), alpha = 0.6) +
+  geom_smooth(method = "lm", color = "black", linetype = "dashed", se = FALSE) +
+  geom_text(aes(label = label), vjust = -0.5, hjust = 0.5, size = 3, show.legend = FALSE, check_overlap = TRUE) +
+  labs(
+    title = "NBA Recruit Rank vs. Career Average Win Assessment",
+    subtitle = "Highlights for LeBron James, Chris Paul, Kevin Durant, and Draymond Green",
+    x = "Recruit Rank",
+    y = "Average Win Assessment (top_mean_wa)",
+    color = "Career Tier"
+  ) +
+  theme_minimal()
+```
